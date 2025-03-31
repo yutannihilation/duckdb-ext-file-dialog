@@ -3,7 +3,7 @@ extern crate duckdb_loadable_macros;
 extern crate libduckdb_sys;
 
 use duckdb::{
-    core::{DataChunkHandle, LogicalTypeId},
+    core::{DataChunkHandle, Inserter as _, LogicalTypeId},
     vscalar::{ScalarFunctionSignature, VScalar},
     vtab::arrow::WritableVector,
     Connection, Result,
@@ -22,8 +22,8 @@ impl VScalar for ChooseFileFunc {
         _input: &mut DataChunkHandle,
         output: &mut dyn WritableVector,
     ) -> std::result::Result<(), Box<dyn std::error::Error>> {
-        let mut flat_vec = output.flat_vector();
-        flat_vec.as_mut_slice().fill("hello!");
+        let output_flat = output.flat_vector();
+        output_flat.insert(0, "hello!");
         Ok(())
     }
 
