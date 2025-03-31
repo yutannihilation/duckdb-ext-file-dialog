@@ -458,12 +458,12 @@ checksum = "6d8c35886fbb5356fe90c8a9b69da5623d509c32bdfb6eefa7f57081eb05f69b"
 dependencies = [
  "arrow",
  "cast",
- "duckdb-loadable-macros",
  "fallible-iterator",
  "fallible-streaming-iterator",
  "hashlink",
  "libduckdb-sys",
  "memchr",
+ "num",
  "num-integer",
  "rust_decimal",
  "smallvec",
