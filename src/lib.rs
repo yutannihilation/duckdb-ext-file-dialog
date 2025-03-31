@@ -10,6 +10,7 @@ use duckdb::{
 };
 use duckdb_loadable_macros::duckdb_entrypoint_c_api;
 use libduckdb_sys as ffi;
+use rfd::FileDialog;
 use std::error::Error;
 
 struct ChooseFileFunc;
@@ -22,8 +23,17 @@ impl VScalar for ChooseFileFunc {
         _input: &mut DataChunkHandle,
         output: &mut dyn WritableVector,
     ) -> std::result::Result<(), Box<dyn std::error::Error>> {
+        let dialog = match std::env::current_dir() {
+            Ok(cur_dir) => FileDialog::new().set_directory(cur_dir),
+            Err(_) => FileDialog::new(),
+        };
+        let path = dialog.pick_file().ok_or("Failed to get file")?;
+        let path_str = path
+            .to_str()
+            .ok_or("The path contains non-UTF-8 character")?;
+
         let output_flat = output.flat_vector();
-        output_flat.insert(0, "hello!");
+        output_flat.insert(0, path_str);
         Ok(())
     }
 
