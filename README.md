@@ -4,6 +4,8 @@
 SELECT * FROM read_csv(choose_file());
 ```
 
+![](./file-dialog2.mp4)
+
 ## Development
 
 ```shell
