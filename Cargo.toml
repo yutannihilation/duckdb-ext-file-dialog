@@ -1,6 +1,6 @@
 [package]
-name = "rusty_quack"
-version = "0.1.0"
+name = "file_dialog"
+version = "0.0.1"
 edition = "2021"
 
 [lib]
@@ -15,7 +15,7 @@ strip = true
 # src/wasm_lib.rs forwards to src/lib.rs so that we can change from cdylib
 # (that is needed while compiling natively) to staticlib (needed since the
 # actual linking will be done via emcc
-name = "rusty_quack"
+name = "file_dialog"
 path = "src/wasm_lib.rs"
 crate-type = ["staticlib"]
 
