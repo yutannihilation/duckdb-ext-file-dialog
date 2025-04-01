@@ -4,7 +4,7 @@
 SELECT * FROM read_csv(choose_file());
 ```
 
-![](./file-dialog2.mp4)
+https://github.com/user-attachments/assets/2067ff33-5159-44cd-82e3-c117bcbdf9e0
 
 ## Installation
 
