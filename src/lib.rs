@@ -33,13 +33,16 @@ impl VScalar for ChooseFileFunc {
             None => dialog,
         };
 
-        let path = dialog.pick_file().ok_or("Failed to get file")?;
-        let path_str = path
-            .to_str()
-            .ok_or("The path contains non-UTF-8 character")?;
+        let paths = dialog.pick_files().ok_or("Failed to get file")?;
+        let paths_str = paths
+            .iter()
+            .map(|x| x.to_str().ok_or("The path contains non-UTF-8 character"))
+            .collect::<Result<Vec<&str>, &str>>()?;
 
         let output_flat = output.flat_vector();
-        output_flat.insert(0, path_str);
+        for (i, p) in paths_str.into_iter().enumerate() {
+            output_flat.insert(i, p);
+        }
         Ok(())
     }
 
