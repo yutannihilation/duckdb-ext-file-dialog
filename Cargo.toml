@@ -28,4 +28,3 @@ duckdb = { version = "1.2.1", features = [
 duckdb-loadable-macros = "0.1.5"
 libduckdb-sys = { version = "1.2.1", features = ["loadable-extension"] }
 rfd = "0.15.3"
-# rfd = { git = "https://github.com/yutannihilation/rfd", branch = "fix-issue-203" }
