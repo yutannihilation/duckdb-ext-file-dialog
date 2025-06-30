@@ -710,9 +710,9 @@ dependencies = [
 
 [[package]]
 name = "duckdb-loadable-macros"
-version = "0.1.7"
+version = "0.1.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d19625372769f0c69a304f5686428716f4df455f1c9607b696f43f957a8d7d2f"
+checksum = "6093c4b6e28bf2d07b6b699d6bdb7935dbfa1870cf4ddd043e4aae6935771590"
 dependencies = [
  "darling",
  "proc-macro2",
