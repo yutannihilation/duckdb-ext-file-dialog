@@ -25,6 +25,6 @@ duckdb = { version = "1.4.0", features = [
     "vscalar-arrow",
     "vtab-arrow",
 ] }
-duckdb-loadable-macros = "0.1.10"
+duckdb-loadable-macros = "0.1.11"
 libduckdb-sys = { version = "1.4.0", features = ["loadable-extension"] }
 rfd = "0.15.3"
