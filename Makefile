@@ -9,7 +9,7 @@ EXTENSION_NAME=file_dialog
 USE_UNSTABLE_C_API=1
 
 # Target DuckDB version
-TARGET_DUCKDB_VERSION=v1.4.0
+TARGET_DUCKDB_VERSION=v1.4.1
 
 all: configure debug
 
