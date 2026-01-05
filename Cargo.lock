@@ -1668,13 +1668,14 @@ dependencies = [
 
 [[package]]
 name = "rfd"
-version = "0.15.4"
+version = "0.17.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ef2bee61e6cffa4635c72d7d81a84294e28f0930db0ddcb0f66d10244674ebed"
+checksum = "e22b12ea46f8320162a0aa43ae045169fe1ac89314e1861e4ce79091fce6ef11"
 dependencies = [
  "block2",
  "dispatch2",
  "js-sys",
+ "libc",
  "log",
  "objc2",
  "objc2-app-kit",
@@ -1684,7 +1685,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "windows-sys 0.59.0",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]
