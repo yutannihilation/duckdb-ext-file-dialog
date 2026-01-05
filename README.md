@@ -32,5 +32,6 @@ make debug
 ```
 
 ```sql
-LOAD './build/debug/extension/file_dialog/file_dialog.duckdb_extension';
+-- the path must be absolute
+LOAD '/path/to/build/debug/file_dialog.duckdb_extension';
 ```
