@@ -58,7 +58,8 @@ fn get_filter_option(input: &mut DataChunkHandle) -> Option<String> {
         0 => None,
         1 => {
             let input_vec = input.flat_vector(0);
-            let mut option_raw = input_vec.as_slice_with_len::<duckdb_string_t>(input.len())[0];
+            let mut option_raw =
+                unsafe { input_vec.as_slice_with_len::<duckdb_string_t>(input.len()) }[0];
 
             // TODO: duckdb-rs doesn't prvide a way to get string from a FlatVector.
             // (DuckString::new() is pub(crate) so unavailable).
