@@ -20,7 +20,13 @@ path = "src/wasm_lib.rs"
 crate-type = ["staticlib"]
 
 [dependencies]
-duckdb = { version = "1.10503.0", features = ["vscalar"] }
-duckdb-loadable-macros = "1.10503.0"
-libduckdb-sys = { version = "1.10503.0", features = ["loadable-extension"] }
-rfd = "0.15.3"
+duckdb = { version = "1.10505.0", features = ["vscalar"] }
+duckdb-loadable-macros = "1.10505.0"
+libduckdb-sys = { version = "1.10505.0", features = ["loadable-extension"] }
+# rfd 0.16 gated its Wayland support behind a `wayland` feature that is enabled
+# by default. That feature pulls in wayland-sys, whose build script requires the
+# `wayland-client` system library via pkg-config, which isn't present in DuckDB's
+# Linux build containers. The feature is only used to resolve a parent window for
+# `set_parent()`, which this extension never calls, so we opt out of it and keep
+# just the XDG Desktop Portal backend.
+rfd = { version = "0.17.2", default-features = false, features = ["xdg-portal"] }
