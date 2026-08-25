@@ -9,7 +9,7 @@ use duckdb::{
     Connection, Result,
 };
 use duckdb_loadable_macros::duckdb_entrypoint_c_api;
-use libduckdb_sys::{self as ffi, duckdb_string_t, duckdb_string_t_data, duckdb_string_t_length};
+use libduckdb_sys::{duckdb_string_t, duckdb_string_t_data, duckdb_string_t_length};
 use rfd::FileDialog;
 use std::error::Error;
 
@@ -18,7 +18,7 @@ struct ChooseFileFunc;
 impl VScalar for ChooseFileFunc {
     type State = ();
 
-    unsafe fn invoke(
+    fn invoke(
         _state: &Self::State,
         input: &mut DataChunkHandle,
         output: &mut dyn WritableVector,
