@@ -1,101 +1,96 @@
-extern crate duckdb;
-extern crate duckdb_loadable_macros;
-extern crate libduckdb_sys;
-
-use duckdb::{
-    core::{DataChunkHandle, Inserter as _, LogicalTypeId},
-    vscalar::{ScalarFunctionSignature, VScalar},
-    vtab::arrow::WritableVector,
-    Connection, Result,
+use duckdb_loadable_macros::duckdb_entrypoint_c_api_v2;
+use duckdb_neo::{
+    DuckDBType, Result,
+    connection::Context,
+    data_chunk::VectorCollection,
+    enums::{FunctionProperty, FunctionPropertyStability},
+    error::Error,
+    extension::Extension,
+    scalar::{ScalarCallbacks, ScalarFunctionBuilder},
+    signature::{FunctionDocumentationBuilder, FunctionParameter, SignatureBuilder},
+    vector::{Unknown, Vector},
 };
-use duckdb_loadable_macros::duckdb_entrypoint_c_api;
-use libduckdb_sys::{duckdb_string_t, duckdb_string_t_data, duckdb_string_t_length};
 use rfd::FileDialog;
-use std::error::Error;
+
+const FUNCTION_NAME: &str = "choose_file";
 
 struct ChooseFileFunc;
 
-impl VScalar for ChooseFileFunc {
-    type State = ();
+impl ScalarCallbacks for ChooseFileFunc {
+    type BindData = ();
+    type InitData = ();
 
-    fn invoke(
-        _state: &Self::State,
-        input: &mut DataChunkHandle,
-        output: &mut dyn WritableVector,
-    ) -> std::result::Result<(), Box<dyn std::error::Error>> {
+    fn exec(
+        &self,
+        _bind_data: Option<&Self::BindData>,
+        _init_data: Option<&mut Self::InitData>,
+        _context: &Context,
+        input: &mut VectorCollection,
+        output: Vector<'_, Unknown>,
+    ) -> Result<()> {
         let dialog = match std::env::current_dir() {
             Ok(cur_dir) => FileDialog::new().set_directory(cur_dir),
             Err(_) => FileDialog::new(),
         };
 
-        let dialog = match get_filter_option(input) {
+        let filter = if input.col_count() > 0 {
+            let vec = input.get_vector_at::<String>(0)?;
+            vec.reader()?.get(0)?.map(|s| {
+                if let Some(stripped) = s.strip_prefix('.') {
+                    stripped.to_string()
+                } else {
+                    s.to_string()
+                }
+            })
+        } else {
+            None
+        };
+
+        let dialog = match filter.as_deref() {
             Some(filter) => dialog.add_filter("specified extension", &[filter]),
             None => dialog,
         };
 
-        let path = dialog.pick_file().ok_or("Failed to get file")?;
+        let path = dialog
+            .pick_file()
+            .ok_or_else(|| Error::invalid_input("Failed to get file"))?;
         let path_str = path
             .to_str()
-            .ok_or("The path contains non-UTF-8 character")?;
+            .ok_or_else(|| Error::invalid_input("The path contains non-UTF-8 character"))?;
 
-        let output_flat = output.flat_vector();
-        output_flat.insert(0, path_str);
+        let row_count = input.row_count()?.max(1);
+        let mut output = output.cast::<String>()?;
+        output.set_size(row_count)?;
+        let mut writer = output.writer()?;
+        for i in 0..row_count {
+            writer.set(i, Some(path_str))?;
+        }
         Ok(())
     }
-
-    fn signatures() -> Vec<duckdb::vscalar::ScalarFunctionSignature> {
-        // i.e. choose_file()
-        let sig_any = ScalarFunctionSignature::exact(vec![], varchar_ty());
-        // i.e. choose_file('.csv')
-        let sig_with_filter = ScalarFunctionSignature::exact(vec![varchar_ty()], varchar_ty());
-
-        vec![sig_any, sig_with_filter]
-    }
 }
 
-fn get_filter_option(input: &mut DataChunkHandle) -> Option<String> {
-    match input.num_columns() {
-        0 => None,
-        1 => {
-            let input_vec = input.flat_vector(0);
-            let mut option_raw =
-                unsafe { input_vec.as_slice_with_len::<duckdb_string_t>(input.len()) }[0];
-
-            // TODO: duckdb-rs doesn't prvide a way to get string from a FlatVector.
-            // (DuckString::new() is pub(crate) so unavailable).
-            let option = unsafe {
-                let len = duckdb_string_t_length(option_raw);
-                let c_ptr = duckdb_string_t_data(&mut option_raw);
-                let string = String::from_utf8_lossy(std::slice::from_raw_parts(
-                    c_ptr as *const u8,
-                    len as usize,
-                ));
-
-                // This is very important. Cow refers to DuckDB's memory, which
-                // might can be erased. So, it needs to be copied into Rust.
-                string.to_string()
-            };
-
-            // in case option is provided with dot, remove it (e.g. ".csv" -> "csv")
-            if let Some(stripped) = option.strip_prefix('.') {
-                Some(stripped.to_string())
-            } else {
-                Some(option)
-            }
-        }
-        _ => unreachable!("Wrong number of options are provided"),
-    }
+pub fn register(extension: &Extension) -> Result<()> {
+    ScalarFunctionBuilder::new(
+        FUNCTION_NAME,
+        SignatureBuilder::new()
+            .param(FunctionParameter::with_default("filter", None::<String>))
+            .return_type(String::logical_type(extension)?)
+            .documentation(
+                FunctionDocumentationBuilder::new()
+                    .description("Open a file dialog to pick a file and return the path.")
+                    .add_example("Any file", "SELECT choose_file()")
+                    .add_example("Filter by extension", "SELECT choose_file('.csv')"),
+            ),
+        ChooseFileFunc,
+    )
+    .set_property(FunctionProperty::HasSpecialNullHandling(true))
+    .set_property(FunctionProperty::Stability(
+        FunctionPropertyStability::Volatile,
+    ))
+    .register(extension)
 }
 
-fn varchar_ty() -> duckdb::core::LogicalTypeHandle {
-    LogicalTypeId::Varchar.into()
-}
-
-const FUNCITON_NAME: &str = "choose_file";
-
-#[duckdb_entrypoint_c_api]
-pub unsafe fn extension_entrypoint(con: Connection) -> Result<(), Box<dyn Error>> {
-    con.register_scalar_function::<ChooseFileFunc>(FUNCITON_NAME)
-        .expect("Failed to register choose_file()");
-    Ok(())
+#[duckdb_entrypoint_c_api_v2(extension_name = "file_dialog", api_version = "2.0.0")]
+pub fn entrypoint(extension: &Extension) -> Result<()> {
+    register(extension)
 }

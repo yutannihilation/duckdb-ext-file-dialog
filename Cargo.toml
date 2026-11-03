@@ -1,7 +1,7 @@
 [package]
 name = "file_dialog"
 version = "0.0.3"
-edition = "2021"
+edition = "2024"
 
 [lib]
 crate-type = ["cdylib"]
@@ -10,19 +10,9 @@ crate-type = ["cdylib"]
 lto = true
 strip = true
 
-[[example]]
-# crate-type can't be (at the moment) be overriden for specific targets
-# src/wasm_lib.rs forwards to src/lib.rs so that we can change from cdylib
-# (that is needed while compiling natively) to staticlib (needed since the
-# actual linking will be done via emcc
-name = "file_dialog"
-path = "src/wasm_lib.rs"
-crate-type = ["staticlib"]
-
 [dependencies]
-duckdb = { version = "1.10505.0", features = ["vscalar"] }
-duckdb-loadable-macros = "1.10505.0"
-libduckdb-sys = { version = "1.10505.0", features = ["loadable-extension"] }
+duckdb-neo = { version = "~0.20000.1", features = ["build-extension"] }
+duckdb-loadable-macros = { version = "~1.20000.1", features = ["neo"] }
 # rfd 0.16 gated its Wayland support behind a `wayland` feature that is enabled
 # by default. That feature pulls in wayland-sys, whose build script requires the
 # `wayland-client` system library via pkg-config, which isn't present in DuckDB's
