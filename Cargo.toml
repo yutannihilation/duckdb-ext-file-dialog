@@ -19,4 +19,4 @@ duckdb-loadable-macros = { version = "~1.20000.1", features = ["neo"] }
 # Linux build containers. The feature is only used to resolve a parent window for
 # `set_parent()`, which this extension never calls, so we opt out of it and keep
 # just the XDG Desktop Portal backend.
-rfd = { version = "0.17.2", default-features = false, features = ["xdg-portal"] }
+rfd = { version = "0.18.0", default-features = false, features = ["xdg-portal"] }
